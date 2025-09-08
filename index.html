@@ -4,43 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delta Force | Дерево квестов</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="format-detection" content="telephone=no">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-    /* Стили для Telegram */
-    body {
-        margin: 0;
-        padding: 10px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        color: white;
-        min-height: 100vh;
-    }
-    
-    .container {
-        max-width: 100%;
-        padding: 5px;
-    }
-    
-    /* Адаптируем таблицу для мобильных */
-    table {
-        width: 100%;
-        font-size: 14px;
-    }
-    
-    /* Кнопки для Telegram */
-    .tg-btn {
-        background: #007aff;
-        color: white;
-        border: none;
-        padding: 12px 16px;
-        border-radius: 10px;
-        margin: 5px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-</style>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -73,6 +36,42 @@
     </div>
 
     <script src="script.js"></script>
+	<script>
+// Определяем открыто ли в Telegram Web App
+if (window.Telegram && Telegram.WebApp) {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Добавляем кнопку закрытия
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Закрыть';
+        closeBtn.style.cssText = `
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+        `;
+        closeBtn.onclick = function() {
+            if (Telegram.WebApp) {
+                Telegram.WebApp.close();
+            }
+        };
+        
+        document.body.appendChild(closeBtn);
+        
+        // Оптимизируем для маленьких экранов
+        if (window.innerHeight < 600) {
+            document.querySelector('header').style.padding = '8px';
+            document.querySelector('.title').style.fontSize = '1.2em';
+        }
+    });
+}
+</script>
 </body>
-
 </html>
