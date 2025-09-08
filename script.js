@@ -735,7 +735,7 @@ const questsDatabase = {
         connectsTo: ["main14"]
     },
 	right8: {
-        title: "Сборщик-5",
+        title: "Сборщик-6",
 		warning:[],
         objectives: ["Отправьте не привязанные предметы: <u>_Золотая лавтровая корона_</u> х1", "Отправьте не привязанные предметы: <u>_Криптекс_</u> х1","Отправьте не привязанные предметы: <u>_Роскошные механические часы_</u> х1"],
         rewards: ["Опыт операции 2 000 ","Сплав Текник 350К"],
@@ -937,10 +937,20 @@ const questsDatabase = {
 
 let currentQuests = {};
 
+
 // Инициализация
 function init() {
-    loadQuests('current');
+     loadQuests('current');
     setupFilters();
+    
+    // Первоначальная отрисовка линий
+    setTimeout(drawAllConnectors, 500);
+    
+    // Периодическая проверка и обновление линий
+    setInterval(() => {
+        drawAllConnectors();
+    }, 1000);
+	
 }
 
 // Загрузка квестов
@@ -960,118 +970,180 @@ function setupFilters() {
     });
 }
 
-// Отрисовка дерева
 function renderQuestTree() {
     const tree = document.getElementById('questTree');
     tree.innerHTML = '';
 
-    // Создаем столбцы
-    const columns = {
-        'left2': { pos: 0, className: 'left-column-2' },
-        'left1': { pos: 200, className: 'left-column-1' },
-        'main': { pos: 400, className: 'main-column' },
-        'right1': { pos: 600, className: 'right-column-1' },
-        'right2': { pos: 800, className: 'right-column-2' }
-    };
+    // Собираем все уровни из всех квестов
+    const allLevels = new Set();
+    Object.values(currentQuests).forEach(quest => {
+        allLevels.add(quest.level);
+    });
+    const sortedLevels = Array.from(allLevels).sort((a, b) => a - b);
 
-    // Создаем колонки
-    Object.values(columns).forEach(col => {
-        const column = document.createElement('div');
-        column.className = `quest-column ${col.className}`;
-        column.style.left = `${col.pos}px`;
-        tree.appendChild(column);
+    // Создаем колонки уровней в один ряд
+    sortedLevels.forEach(level => {
+        const levelColumn = createLevelColumn(level);
+        tree.appendChild(levelColumn);
     });
 
-    // Добавляем квесты
+    // Добавляем квесты в соответствующие уровни и строки
     Object.entries(currentQuests).forEach(([id, quest]) => {
-        const column = document.querySelector(`.${columns[quest.column].className}`);
-        if (!column) return;
-
-        const node = document.createElement('div');
-        node.className = `quest-node ${quest.column.includes('left') ? 'left' : quest.column.includes('right') ? 'right' : 'main'}`;
-        node.style.top = `${50 + (quest.level - 1) * 120}px`;
-        node.textContent = quest.title;
-        node.dataset.id = id;
-        node.addEventListener('click', () => showQuestDetails(id));
-        column.appendChild(node);
+        addQuestToLevel(id, quest);
     });
 
+    // Выравниваем высоту квестов в каждой колонке
+    setTimeout(equalizeQuestHeights, 100);
+    
     // Отрисовываем связи
-    setTimeout(drawAllConnectors, 100);
+    setTimeout(drawAllConnectors, 200);
 }
 
-// Отрисовка всех соединительных линий
+function createLevelColumn(level) {
+    const levelColumn = document.createElement('div');
+    levelColumn.className = 'level-column';
+    levelColumn.dataset.level = level;
+    
+    // Создаем строки для всех возможных column значений
+    const columnTypes = ['right2', 'right1', 'main', 'left1', 'left2'];
+    columnTypes.forEach(columnType => {
+        const branchRow = createBranchRow(columnType);
+        levelColumn.appendChild(branchRow);
+    });
+    
+    const levelLine = document.createElement('div');
+    levelLine.className = 'level-line';
+    levelColumn.appendChild(levelLine);
+    
+    return levelColumn;
+}
+
+function createBranchRow(columnType) {
+    const row = document.createElement('div');
+    row.className = `branch-row branch-${columnType}`;
+    row.dataset.column = columnType;
+    return row;
+}
+
+function addQuestToLevel(id, quest) {
+    const levelColumn = document.querySelector(`.level-column[data-level="${quest.level}"]`);
+    if (!levelColumn) return;
+    
+    const branchRow = levelColumn.querySelector(`.branch-row[data-column="${quest.column}"]`);
+    
+    if (!branchRow) return;
+
+    const node = document.createElement('div');
+    node.className = 'quest-node';
+    node.textContent = quest.title;
+    node.dataset.id = id;
+    node.dataset.level = quest.level;
+    node.dataset.column = quest.column;
+    node.addEventListener('click', () => showQuestDetails(id));
+    
+    branchRow.appendChild(node);
+}
+
+function equalizeQuestHeights() {
+    // Находим максимальную высоту квестов в каждой колонке
+    document.querySelectorAll('.level-column').forEach(column => {
+        let maxHeight = 0;
+        
+        // Находим максимальную высоту среди всех квестов в колонке
+        column.querySelectorAll('.quest-node').forEach(node => {
+            const height = node.scrollHeight;
+            if (height > maxHeight) {
+                maxHeight = height;
+            }
+        });
+        
+        // Устанавливаем одинаковую высоту всем квестам в колонке
+        column.querySelectorAll('.quest-node').forEach(node => {
+            node.style.minHeight = `${maxHeight}px`;
+        });
+    });
+}
+
 function drawAllConnectors() {
-    document.querySelectorAll('.connector').forEach(el => el.remove());
+    const tree = document.getElementById('questTree');
+    if (!tree) return;
+    
+    document.querySelectorAll('.connector-svg').forEach(el => el.remove());
+
+    // Создаем один SVG для всех линий
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('connector-svg');
+    tree.appendChild(svg);
 
     Object.entries(currentQuests).forEach(([sourceId, quest]) => {
         if (quest.connectsTo && quest.connectsTo.length) {
             quest.connectsTo.forEach(targetId => {
-                drawConnector(sourceId, targetId);
+                if (currentQuests[targetId]) {
+                    drawConnector(sourceId, targetId, svg, tree);
+                }
             });
         }
     });
 }
 
-// Отрисовка одной соединительной линии
-function drawConnector(sourceId, targetId) {
+function drawConnector(sourceId, targetId, svg, tree) {
     const source = document.querySelector(`[data-id="${sourceId}"]`);
     const target = document.querySelector(`[data-id="${targetId}"]`);
-    if (!source || !target) return;
+    
+    if (!source || !target || !tree) return;
 
-    const tree = document.getElementById('questTree');
-    const connector = document.createElement('div');
-    connector.className = 'connector';
-
-	// Добавляем data-атрибуты для связи с квестами
-    connector.dataset.source = sourceId;
-    connector.dataset.target = targetId;
-
-
+    const treeRect = tree.getBoundingClientRect();
     const sourceRect = source.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    const treeRect = tree.getBoundingClientRect();
 
-    const startX = sourceRect.left + sourceRect.width/2 - treeRect.left;
-    const startY = sourceRect.top + sourceRect.height/2 - treeRect.top;
-    const endX = targetRect.left + targetRect.width/2 - treeRect.left;
-    const endY = targetRect.top + targetRect.height/2 - treeRect.top;
+    // Центры блоков относительно tree
+    const startX = sourceRect.left + sourceRect.width / 2 - treeRect.left;
+    const startY = sourceRect.top + sourceRect.height / 2 - treeRect.top;
+    const endX = targetRect.left + targetRect.width / 2 - treeRect.left;
+    const endY = targetRect.top + targetRect.height / 2 - treeRect.top;
 
-    const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-    const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
-
-    connector.style.width = `${length}px`;
-    connector.style.left = `${startX}px`;
-    connector.style.top = `${startY}px`;
-    connector.style.transform = `rotate(${angle}deg)`;
-
-    connector.addEventListener('mouseenter', () => {
-        source.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.7)';
-        target.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.7)';
-    });
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.classList.add('connector-path');
     
-    connector.addEventListener('mouseleave', () => {
-        source.style.boxShadow = '0 0 15px rgba(0,0,0,0.5)';
-        target.style.boxShadow = '0 0 15px rgba(0,0,0,0.5)';
-    });
-	
-    tree.appendChild(connector);
+    const sourceLevel = parseInt(source.dataset.level);
+    const targetLevel = parseInt(target.dataset.level);
+    
+    if (sourceLevel === targetLevel) {
+        // Прямая линия для одного уровня
+        path.setAttribute('d', `M ${startX} ${startY} L ${endX} ${endY}`);
+    } else {
+        // Плавная кривая для разных уровней
+        const midX = (startX + endX) / 2;
+        const d = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+        path.setAttribute('d', d);
+    }
+    
+    svg.appendChild(path);
 }
 
-// Показ деталей квеста
+function isQuestVisible(questId) {
+    return true; // Всегда отрисовываем линии
+}
+
+// Функция для перерисовки линий при изменении размера
+let resizeTimeout;
+function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        drawAllConnectors();
+    }, 250);
+}
+
+
+
 function showQuestDetails(questId) {
     const quest = currentQuests[questId];
-    if (!quest) {
-        console.error(`Квест не найден: ${questId}`);
-        return;
-    }
+    if (!quest) return;
 
     const modal = document.getElementById('questModal');
     
-    // Заголовок
     document.getElementById('modalTitle').textContent = quest.title;
     
-    // Предупреждения (с проверкой на массив)
     const warningsEl = document.getElementById('modalWarnings');
     if (Array.isArray(quest.warning) && quest.warning.length) {
         warningsEl.innerHTML = '<h3>⚠️ Внимание:</h3>' + 
@@ -1080,37 +1152,32 @@ function showQuestDetails(questId) {
         warningsEl.innerHTML = '';
     }
     
-    // Задачи
     const objectivesEl = document.getElementById('modalObjectives');
     objectivesEl.innerHTML = '<h3>▸ Задачи:</h3>' + 
         (Array.isArray(quest.objectives) ? quest.objectives.map(obj => 
-            `<div class="quest-item">${formatText(obj, quest.links)}</div>`
+            `<div class="quest-item">${formatText(obj)}</div>`
         ).join('') : '');
     
-    // Награды
     const rewardsEl = document.getElementById('modalRewards');
     rewardsEl.innerHTML = Array.isArray(quest.rewards) && quest.rewards.length ? 
         '<h3>▸ Награды:</h3>' + 
-        quest.rewards.map(r => `<div class="quest-item">${formatText(r, quest.links)}</div>`).join('') : 
+        quest.rewards.map(r => `<div class="quest-item">${formatText(r)}</div>`).join('') : 
         '';
     
-    // Разблокируемые предметы
     const supplyEl = document.getElementById('modalSupply');
     supplyEl.innerHTML = Array.isArray(quest.supplyRewards) && quest.supplyRewards.length ? 
         '<h3>▸ Разблокируется в пункте снабжения:</h3>' + 
-        quest.supplyRewards.map(r => `<div class="quest-item">${formatText(r, quest.links)}</div>`).join('') : 
+        quest.supplyRewards.map(r => `<div class="quest-item">${formatText(r)}</div>`).join('') : 
         '';
     
-    // Комментарии
     const commentsEl = document.getElementById('modalComments');
     commentsEl.innerHTML = quest.comments ? 
-        '<h3>▸ Советы:</h3><div class="quest-item">' + formatText(quest.comments, quest.links) + '</div>' : 
+        '<h3>▸ Советы:</h3><div class="quest-item">' + formatText(quest.comments) + '</div>' : 
         '';
 
     modal.style.display = 'flex';
 }
 
-// Форматирование текста
 function formatText(text) {
     if (!text) return '';
     return text
@@ -1120,10 +1187,38 @@ function formatText(text) {
         .replace(/<>(.*?)<>/g, '<span class="red-text">$1</span>');
 }
 
-// Закрытие модального окна
 document.querySelector('.close-btn').addEventListener('click', () => {
     document.getElementById('questModal').style.display = 'none';
 });
 
-// Инициализация при загрузке
+let isScrolling = false;
+
+function handleScroll() {
+    if (!isScrolling) {
+        isScrolling = true;
+        setTimeout(() => {
+            drawAllConnectors();
+            isScrolling = false;
+        }, 150);
+    }
+}
+
+// Слушаем события скролла только на window
+window.addEventListener('scroll', handleScroll);
+window.addEventListener('resize', handleScroll);
+
+// Добавляем обработчик скролла для колеса мыши на tree-container
+const treeContainer = document.querySelector('.tree-container');
+if (treeContainer) {
+    treeContainer.addEventListener('wheel', function(e) {
+        // Горизонтальный скролл колесом мыши
+        if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+            this.scrollLeft += e.deltaY * 2;
+            e.preventDefault();
+        }
+    });
+}
+// Инициализация
+
 window.onload = init;
+window.addEventListener('resize', handleResize);
