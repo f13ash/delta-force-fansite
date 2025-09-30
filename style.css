@@ -13,6 +13,7 @@
     --warning-bg: rgba(255, 50, 50, 0.3);
 }
 
+
 * {
     box-sizing: border-box;
 }
@@ -117,6 +118,21 @@ header {
     background: var(--filter-active);
     color: black;
     transform: scale(1.05);
+}
+
+.filter-btn.disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: var(--filter-inactive);
+    color: #888;
+}
+
+.filter-btn.disabled:hover {
+	
+    background: var(--filter-inactive);
+    color: #888;
+    transform: none;
 }
 
 .tree-container {
@@ -531,6 +547,22 @@ header {
     animation: fadeIn 0.3s ease-out;
 }
 
+.type-btn.disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: var(--filter-inactive);
+    color: #888;
+}
+
+.type-btn.disabled:hover {
+	
+    background: var(--filter-inactive);
+    color: #888;
+    transform: none;
+}
+
+
 /* Адаптивность */
 @media (max-width: 768px) {
     .quest-tree {
@@ -595,6 +627,21 @@ header {
         font-size: 12px;
         min-width: 120px;
     }
+	
+	.filter-btn.disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: var(--filter-inactive);
+    color: #888;
+}
+
+    .filter-btn.disabled:hover {
+	
+    background: var(--filter-inactive);
+    color: #888;
+    transform: none;
+}
 }
 
 @media (max-width: 768px) {
@@ -708,6 +755,15 @@ header {
     color: var(--red-accent);
     font-weight: bold;
 }
+
+
+.blue-text {
+    color: #5555ff;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(85, 85, 255, 0.5);
+}
+
+
 
 /* Индикатор загрузки */
 .loading {
