@@ -1123,7 +1123,7 @@ const questsDatabase = {
                 connectsTo: ["quest3"]
             },
 			quest3: {
-                title: "Неизвестно",
+                title: "Зачистка",
                 warning: ["Высокий уровень угрозы"],
                 objectives: ["Очистите 2 зоны от врагов", "Не допускайте тревоги"],
                 rewards: ["Опыт операции 4 000", "Штурмовой комплект", "Сплав Текник 300К"],
@@ -1133,7 +1133,7 @@ const questsDatabase = {
                 connectsTo: ["quest4"]
             },
 			quest4: {
-                title: "Неизвестно",
+                title: "Зачистка",
                 warning: ["Высокий уровень угрозы"],
                 objectives: ["Очистите 2 зоны от врагов", "Не допускайте тревоги"],
                 rewards: ["Опыт операции 4 000", "Штурмовой комплект", "Сплав Текник 300К"],
@@ -1143,7 +1143,7 @@ const questsDatabase = {
                 connectsTo: ["quest5"]
             },
 			quest5: {
-                title: "Неизвестно",
+                title: "Зачистка",
                 warning: ["Высокий уровень угрозы"],
                 objectives: ["Очистите 2 зоны от врагов", "Не допускайте тревоги"],
                 rewards: ["Опыт операции 4 000", "Штурмовой комплект", "Сплав Текник 300К"],
@@ -1153,7 +1153,7 @@ const questsDatabase = {
                 connectsTo: ["quest6"]
             },
 			quest6: {
-                title: "Неизвестно",
+                title: "Зачистка",
                 warning: ["Высокий уровень угрозы"],
                 objectives: ["Очистите 2 зоны от врагов", "Не допускайте тревоги"],
                 rewards: ["Опыт операции 4 000", "Штурмовой комплект", "Сплав Текник 300К"],
@@ -1163,7 +1163,7 @@ const questsDatabase = {
                 connectsTo: ["quest7"]
             },
 			quest7: {
-                title: "Неизвестно",
+                title: "Зачистка",
                 warning: ["Высокий уровень угрозы"],
                 objectives: ["Очистите 2 зоны от врагов", "Не допускайте тревоги"],
                 rewards: ["Опыт операции 4 000", "Штурмовой комплект", "Сплав Текник 300К"],
@@ -1173,7 +1173,7 @@ const questsDatabase = {
                 connectsTo: ["quest8"]
             },
 			quest8: {
-                title: "Неизвестно",
+                title: "Зачистка",
                 warning: ["Высокий уровень угрозы"],
                 objectives: ["Очистите 2 зоны от врагов", "Не допускайте тревоги"],
                 rewards: ["Опыт операции 4 000", "Штурмовой комплект", "Сплав Текник 300К"],
@@ -1187,11 +1187,11 @@ const questsDatabase = {
     
     // Плитка 4 
     set4: {
-        title: "Неизвестно",
-        difficulty: "10★",
+        title: "Дополнительные цели",
+        difficulty: "★★☆☆☆",
         quests: {
             quest1: {
-                title: "Неизвестно",
+                title: "Разведка",
                 warning: [],
                 objectives: ["Исследуйте 5 новых локаций", "Соберите разведданные"],
                 rewards: ["Опыт операции 1 500", "Карта местности", "Сплав Текник 80К"],
@@ -2459,7 +2459,9 @@ function showSeason6Sets(setNumber) {
     setsPanel.innerHTML = '';
     questsPanel.innerHTML = '';
     
-    // Находим все наборы для этой цифры (в данном случае все наборы принадлежат одной цифре)
+    // Проверяем мобильное устройство
+    const isMobile = window.innerWidth <= 768;
+    
     Object.entries(currentQuests).forEach(([setId, setData]) => {
         if (setId.startsWith(setNumber)) {
             const setElement = document.createElement('div');
@@ -2473,21 +2475,37 @@ function showSeason6Sets(setNumber) {
             `;
             
             setElement.addEventListener('click', function() {
-                document.querySelectorAll('.season6-set').forEach(set => set.classList.remove('active'));
-                this.classList.add('active');
-                showSeason6Quests(setId);
+                if (isMobile) {
+                    // На мобильных - переключаем активность
+                    const isActive = this.classList.contains('active');
+                    document.querySelectorAll('.season6-set').forEach(set => set.classList.remove('active'));
+                    
+                    if (!isActive) {
+                        this.classList.add('active');
+                        showSeason6Quests(setId, true);
+                    } else {
+                        questsPanel.innerHTML = ''; // Скрываем квесты
+                    }
+                } else {
+                    // На десктопе - обычное поведение
+                    document.querySelectorAll('.season6-set').forEach(set => set.classList.remove('active'));
+                    this.classList.add('active');
+                    showSeason6Quests(setId, false);
+                }
             });
             
             setsPanel.appendChild(setElement);
         }
     });
     
-    // Показываем квесты первого набора по умолчанию
-    showSeason6Quests(`${setNumber}1`);
+    // Показываем квесты первого набора
+    if (!isMobile) {
+        showSeason6Quests(`${setNumber}1`, false);
+    }
 }
 
-// Показываем квесты выбранного набора
-function showSeason6Quests(setId) {
+// Обновленная функция показа квестов
+function showSeason6Quests(setId, isMobile) {
     const questsPanel = document.getElementById('season6QuestsPanel');
     questsPanel.innerHTML = '';
     
@@ -2509,11 +2527,11 @@ function showSeason6Quests(setId) {
     // Рендерим каждый уровень
     sortedLevels.forEach(level => {
         const levelLine = document.createElement('div');
-        levelLine.className = 'season6-quest-line';
+        levelLine.className = `season6-quest-line ${isMobile ? 'mobile-column' : ''}`;
         
         levels[level].forEach(quest => {
             const questNode = document.createElement('div');
-            questNode.className = 'season6-quest-node';
+            questNode.className = `season6-quest-node ${isMobile ? 'mobile' : ''}`;
             questNode.textContent = quest.title;
             questNode.dataset.questId = quest.id;
             questNode.dataset.setId = setId;
@@ -2528,11 +2546,14 @@ function showSeason6Quests(setId) {
         questsPanel.appendChild(levelLine);
     });
     
-    // Отрисовываем соединительные линии после небольшой задержки
-    setTimeout(() => {
-        drawSeason6Connectors();
-    }, 100);
+    // Отрисовываем соединительные линии (только для десктопа)
+    if (!isMobile) {
+        setTimeout(() => {
+            drawSeason6Connectors();
+        }, 100);
+    }
 }
+
 // Показываем детали квеста для season6
 function showSeason6QuestDetails(questId, setId) {
     const quest = currentQuests[setId].quests[questId];
@@ -3118,5 +3139,4 @@ window.addEventListener('resize', () => {
         setTimeout(drawSeason6Connectors, 250);
     }
 });
-
 
