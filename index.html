@@ -12,7 +12,7 @@
             <h1 class="title">Все квесты|<span>DELTA FORCE</span></h1>
             <div class="quest-type-selector">
                 <button class="type-btn active" data-type="seasonal">Сезонные квесты</button>
-                <button class="type-btn" data-type="reputation">Репутационные квесты</button>
+                <button class="type-btn" data-type="reputation1">Репутационные квесты</button>
             </div>
             
             <div class="quest-filters" id="seasonalFilters">
@@ -86,5 +86,19 @@
         });
     }
     </script>
+	<style>
+.season6-set-mobile-indicator {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .season6-set-mobile-indicator {
+        display: block;
+        color: var(--main-color);
+        font-size: 12px;
+        margin-top: 5px;
+    }
+}
+</style>
 </body>
 </html>
