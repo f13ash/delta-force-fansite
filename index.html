@@ -10,10 +10,23 @@
     <div class="container">
         <header>
             <h1 class="title">Все квесты|<span>DELTA FORCE</span></h1>
-            <div class="quest-filters">
-                <button class="filter-btn active" data-filter="current">Сезон Прорыв</button>
-                <button class="filter-btn" data-filter="seasonal">Скоро</button>
-                <button class="filter-btn" data-filter="old">Скоро</button>
+            <div class="quest-type-selector">
+                <button class="type-btn active" data-type="seasonal">Сезонные квесты</button>
+                <button class="type-btn" data-type="reputation">Репутационные квесты</button>
+            </div>
+            
+            <div class="quest-filters" id="seasonalFilters">
+                <button class="filter-btn" data-filter="current">Сезон 5 Прорыв</button>
+                <button class="filter-btn active" data-filter="season6">Сезон 6 Ночной дозор</button>
+                <button class="filter-btn" data-filter="season7">Сезон 7</button>
+            </div>
+            
+            <div class="quest-filters" id="reputationFilters" style="display: none;">
+                <button class="filter-btn active" data-filter="assault">Штурмовой отдел</button>
+                <button class="filter-btn" data-filter="medical">Медицинский отдел</button>
+                <button class="filter-btn" data-filter="support">Отряд тактической поддержки</button>
+                <button class="filter-btn" data-filter="logistics">Батальон тылового обеспечения</button>
+                <button class="filter-btn" data-filter="rd">Лаборатория НИОКР</button>
             </div>
         </header>
         
@@ -36,42 +49,42 @@
     </div>
 
     <script src="script.js"></script>
-	<script>
-// Определяем открыто ли в Telegram Web App
-if (window.Telegram && Telegram.WebApp) {
-    document.addEventListener('DOMContentLoaded', function() {
-        // Добавляем кнопку закрытия
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = 'Закрыть';
-        closeBtn.style.cssText = `
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background: #007aff;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            z-index: 1000;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
-        `;
-        closeBtn.onclick = function() {
-            if (Telegram.WebApp) {
-                Telegram.WebApp.close();
+    <script>
+    // Определяем открыто ли в Telegram Web App
+    if (window.Telegram && Telegram.WebApp) {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Добавляем кнопку закрытия
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Закрыть';
+            closeBtn.style.cssText = `
+                position: fixed;
+                bottom: 15px;
+                right: 15px;
+                background: #007aff;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 25px;
+                cursor: pointer;
+                z-index: 1000;
+                font-size: 16px;
+                box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+            `;
+            closeBtn.onclick = function() {
+                if (Telegram.WebApp) {
+                    Telegram.WebApp.close();
+                }
+            };
+            
+            document.body.appendChild(closeBtn);
+            
+            // Оптимизируем для маленьких экранов
+            if (window.innerHeight < 600) {
+                document.querySelector('header').style.padding = '8px';
+                document.querySelector('.title').style.fontSize = '1.2em';
             }
-        };
-        
-        document.body.appendChild(closeBtn);
-        
-        // Оптимизируем для маленьких экранов
-        if (window.innerHeight < 600) {
-            document.querySelector('header').style.padding = '8px';
-            document.querySelector('.title').style.fontSize = '1.2em';
-        }
-    });
-}
-</script>
+        });
+    }
+    </script>
 </body>
 </html>
