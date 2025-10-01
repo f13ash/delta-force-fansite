@@ -2518,10 +2518,14 @@ function showSeason6Sets(setNumber) {
     // Проверяем мобильное устройство
     const isMobile = window.innerWidth <= 768;
     
+    let firstSetId = null;
+    
     Object.entries(currentQuests).forEach(([setId, setData]) => {
         if (setId.startsWith(setNumber)) {
+            if (!firstSetId) firstSetId = setId;
+            
             const setElement = document.createElement('div');
-            setElement.className = `season6-set ${setId === 'set1' ? 'active' : ''}`;
+            setElement.className = `season6-set ${setId === firstSetId ? 'active' : ''}`;
             setElement.dataset.setId = setId;
             
             setElement.innerHTML = `
@@ -2553,9 +2557,15 @@ function showSeason6Sets(setNumber) {
         }
     });
     
-    // Показываем квесты первого набора
-    if (!isMobile) {
-        showSeason6Quests(`${setNumber}1`, false);
+    // АВТОМАТИЧЕСКИ ПОКАЗЫВАЕМ ПЕРВЫЙ НАБОР НА МОБИЛЬНЫХ
+    if (firstSetId) {
+        if (isMobile) {
+            // На мобильных - показываем квесты первого набора сразу
+            showSeason6Quests(firstSetId, true);
+        } else {
+            // На десктопе - обычное поведение
+            showSeason6Quests(firstSetId, false);
+        }
     }
 }
 
@@ -3168,14 +3178,26 @@ function generateDynamicStyles() {
 // Вызовите эту функцию после загрузки данных
 function init() {
     generateDynamicStyles();
-    loadQuests('season6');
+    
+    // Загружаем активный фильтр (season6 по умолчанию)
+    const activeFilter = document.querySelector('#seasonalFilters .filter-btn.active');
+    if (activeFilter) {
+        loadQuests(activeFilter.dataset.filter);
+    } else {
+        loadQuests('season6'); // fallback
+    }
+    
     setupTypeSelector();
     setupFilters();
     
-    setTimeout(drawAllConnectors, 500);
-    setInterval(() => {
-        drawAllConnectors();
-    }, 1000);
+    // Для season6 не нужны коннекторы, поэтому проверяем тип
+    const currentFilter = document.querySelector('#seasonalFilters .filter-btn.active');
+    if (currentFilter && currentFilter.dataset.filter !== 'season6') {
+        setTimeout(drawAllConnectors, 500);
+        setInterval(() => {
+            drawAllConnectors();
+        }, 1000);
+    }
 }
 
 window.onload = init;
@@ -3194,5 +3216,18 @@ window.addEventListener('resize', () => {
     if (activeFilter && activeFilter.dataset.filter === 'season6') {
         setTimeout(drawSeason6Connectors, 250);
     }
+});
+let season6ResizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(season6ResizeTimeout);
+    season6ResizeTimeout = setTimeout(() => {
+        const activeFilter = document.querySelector('#seasonalFilters .filter-btn.active');
+        if (activeFilter && activeFilter.dataset.filter === 'season6') {
+            const activeNumber = document.querySelector('.season6-number-btn.active');
+            if (activeNumber) {
+                showSeason6Sets(activeNumber.dataset.set);
+            }
+        }
+    }, 250);
 });
 
